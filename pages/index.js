@@ -313,6 +313,8 @@ export default function Home() {
           background: linear-gradient(90deg, #667eea, #00ff88);
           color: #000;
           border: none;
-          border-
-
-// Vercel rebuild trigger v2
+          border-radius: 8px;
+  }
+    `}}
+  </>
+);}
