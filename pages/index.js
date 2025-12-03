@@ -2,36 +2,56 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 
 export default function Home() {
-  const [input, setInput] = useState('');
-  const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [tool1Input, setTool1Input] = useState('');
+  const [tool1Output, setTool1Output] = useState('');
+  
+  const [tool2Input, setTool2Input] = useState('');
+  const [tool2Output, setTool2Output] = useState('');
+  
+  const [tool3Input, setTool3Input] = useState('');
+  const [tool3Output, setTool3Output] = useState('');
 
-  const summarizeText = () => {
-    if (!input.trim()) return;
-    const words = input.split(/\s+/);
-    const summary = words.slice(0, 20).join(' ') + '...';
-    setResult(`📋 Summary: ${summary}`);
+  // Tool 1: JSON Formatter
+  const handleJsonFormat = () => {
+    if (!tool1Input.trim()) return;
+    try {
+      const parsed = JSON.parse(tool1Input);
+      setTool1Output(JSON.stringify(parsed, null, 2));
+    } catch (e) {
+      setTool1Output('❌ Invalid JSON: ' + e.message);
+    }
   };
 
-  const extractKeywords = () => {
-    if (!input.trim()) return;
-    const words = input.toLowerCase().split(/\s+/);
-    const keywords = [...new Set(words)].slice(0, 8).join(', ');
-    setResult(`🔑 Keywords: ${keywords}`);
+  // Tool 2: Prompt Optimizer (for ChatGPT/Claude)
+  const handleOptimizePrompt = () => {
+    if (!tool2Input.trim()) return;
+    const prompt = tool2Input.trim();
+    const optimized = `Task: ${prompt}
+
+Context: Provide clear, detailed instructions.
+Format: Well-structured response expected.
+Tone: Professional and helpful.
+Details: Include examples if applicable.`;
+    setTool2Output(optimized);
   };
 
-  const countWords = () => {
-    if (!input.trim()) return;
-    const wordCount = input.split(/\s+/).length;
-    const charCount = input.length;
-    setResult(`📊 Words: ${wordCount} | Chars: ${charCount}`);
+  // Tool 3: SEO Meta Generator
+  const handleGenerateSEO = () => {
+    if (!tool3Input.trim()) return;
+    const text = tool3Input.trim();
+    const words = text.split(/\s+/);
+    const title = text.substring(0, 60) + (text.length > 60 ? '...' : '');
+    const description = text.substring(0, 160) + (text.length > 160 ? '...' : '');
+    const keywords = [...new Set(words.filter(w => w.length > 4))].slice(0, 5).join(', ');
+    
+    setTool3Output(`📄 SEO Meta Tags:\n\n<title>${title}</title>\n\n<meta name="description" content="${description}">\n\n<meta name="keywords" content="${keywords}">`);
   };
 
   return (
     <>
       <Head>
         <title>AI Fix Lab - Free AI Tools</title>
-        <meta name="description" content="Free AI tools for everyone" />
+        <meta name="description" content="Free AI tools for developers and creators" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -48,7 +68,7 @@ export default function Home() {
       <section id="home" className="hero">
         <div style={{ textAlign: 'center' }}>
           <h1>🚀 AI Fix Lab</h1>
-          <p>Free AI Tools for Everyone</p>
+          <p>Free AI Tools for Developers & Creators</p>
           <button className="cta-button" onClick={() => document.getElementById('tools').scrollIntoView()}>Try Tools Now</button>
         </div>
       </section>
@@ -58,28 +78,28 @@ export default function Home() {
           <h2 className="section-title">Why AI Fix Lab?</h2>
           <div className="features-grid">
             <div className="feature-card">
-              <h3>💡 Free AI Tools</h3>
-              <p>No credit card. No limits. Pure functionality.</p>
+              <h3>💡 Developer Tools</h3>
+              <p>JSON formatting, code optimization, API helpers.</p>
             </div>
             <div className="feature-card">
-              <h3>🎨 Modern & Beautiful</h3>
-              <p>Sleek design that users love. Mobile-optimized.</p>
+              <h3>🔠 Prompt Engineering</h3>
+              <p>Optimize your ChatGPT & Claude prompts instantly.</p>
             </div>
             <div className="feature-card">
-              <h3>⚡ Lightning Speed</h3>
-              <p>Built on Vercel. Instant loading. Zero delays.</p>
+              <h3>🌐 SEO Optimization</h3>
+              <p>Generate meta tags, descriptions, keywords automatically.</p>
             </div>
             <div className="feature-card">
-              <h3>🔐 Privacy Focused</h3>
-              <p>No data collection. No tracking. Clean & ethical.</p>
+              <h3>🔐 100% Private</h3>
+              <p>No data collection. No tracking. Zero logs.</p>
             </div>
             <div className="feature-card">
-              <h3>📱 Mobile First</h3>
-              <p>Works perfectly on all devices. Responsive design.</p>
+              <h3>⚡ Lightning Fast</h3>
+              <p>Instant results on Vercel CDN infrastructure.</p>
             </div>
             <div className="feature-card">
-              <h3>🔧 Easy to Use</h3>
-              <p>Simple, intuitive interface. Get results instantly.</p>
+              <h3>📱 Works Everywhere</h3>
+              <p>Mobile, tablet, desktop - all devices supported.</p>
             </div>
           </div>
         </div>
@@ -87,25 +107,49 @@ export default function Home() {
 
       <section id="tools" className="tools">
         <div className="container">
-          <h2 className="section-title">🛠️ Free AI Tools</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '30px' }}>
+          <h2 className="section-title">🛠️ Free AI Tools (In-Demand 2025)</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
+            {/* Tool 1: JSON Formatter */}
             <div className="tool-card">
-              <h3>📄 Text Summarizer</h3>
-              <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder="Paste text..." rows="5" />
-              <button onClick={summarizeText}>✨ Summarize</button>
-              {result && <p style={{ marginTop: '10px', padding: '10px', background: '#f0f0f0', borderRadius: '5px' }}>{result}</p>}
+              <h3>🔠 JSON Formatter & Validator</h3>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>Format, validate & beautify JSON instantly</p>
+              <textarea 
+                value={tool1Input} 
+                onChange={(e) => setTool1Input(e.target.value)}
+                placeholder="Paste your JSON here..."
+                rows="6"
+                style={{ fontFamily: 'monospace', fontSize: '12px' }}
+              />
+              <button onClick={handleJsonFormat}>📄 Format JSON</button>
+              {tool1Output && <pre style={{ marginTop: '10px', padding: '10px', background: '#f5f5f5', borderRadius: '5px', fontSize: '12px', overflow: 'auto', maxHeight: '200px' }}>{tool1Output}</pre>}
             </div>
+
+            {/* Tool 2: Prompt Optimizer */}
             <div className="tool-card">
-              <h3>🔍 Keyword Extractor</h3>
-              <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder="Enter text..." rows="5" />
-              <button onClick={extractKeywords}>🔎 Extract</button>
-              {result && <p style={{ marginTop: '10px', padding: '10px', background: '#f0f0f0', borderRadius: '5px' }}>{result}</p>}
+              <h3>✨ Prompt Optimizer for AI</h3>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>Improve prompts for ChatGPT, Claude & Gemini</p>
+              <textarea 
+                value={tool2Input} 
+                onChange={(e) => setTool2Input(e.target.value)}
+                placeholder="Enter your prompt/question..."
+                rows="6"
+              />
+              <button onClick={handleOptimizePrompt}>🚀 Optimize Prompt</button>
+              {tool2Output && <pre style={{ marginTop: '10px', padding: '10px', background: '#f5f5f5', borderRadius: '5px', fontSize: '12px', overflow: 'auto', maxHeight: '200px', whiteSpace: 'pre-wrap' }}>{tool2Output}</pre>}
             </div>
+
+            {/* Tool 3: SEO Meta Generator */}
             <div className="tool-card">
-              <h3>📊 Word Counter</h3>
-              <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder="Paste text..." rows="5" />
-              <button onClick={countWords}>📈 Count</button>
-              {result && <p style={{ marginTop: '10px', padding: '10px', background: '#f0f0f0', borderRadius: '5px' }}>{result}</p>}
+              <h3>🌐 SEO Meta Tag Generator</h3>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>Auto-generate title, description & keywords</p>
+              <textarea 
+                value={tool3Input} 
+                onChange={(e) => setTool3Input(e.target.value)}
+                placeholder="Paste your content here..."
+                rows="6"
+              />
+              <button onClick={handleGenerateSEO}>📄 Generate SEO Tags</button>
+              {tool3Output && <pre style={{ marginTop: '10px', padding: '10px', background: '#f5f5f5', borderRadius: '5px', fontSize: '12px', overflow: 'auto', maxHeight: '200px', whiteSpace: 'pre-wrap' }}>{tool3Output}</pre>}
             </div>
           </div>
         </div>
