@@ -136,7 +136,7 @@ export default function Home() {
         <div className='container'>
           <header className='header'>
             <h2>5 Free AI Tools</h2>
-            <p>No signup required • Always free • Ad-supported</p>
+            <p>No signup required • Always free</p>
           </header>
 
           {/* TAB NAVIGATION */}
