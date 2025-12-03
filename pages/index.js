@@ -30,8 +30,8 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>AI Fix Lab - Free AI Tools & Earn Money Fast</title>
-        <meta name="description" content="Free AI tools + multiple monetization methods" />
+        <title>AI Fix Lab - Free AI Tools</title>
+        <meta name="description" content="Free AI tools for everyone" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -41,7 +41,6 @@ export default function Home() {
           <ul>
             <li><a href="#home">Home</a></li>
             <li><a href="#tools">AI Tools</a></li>
-            <li><a href="#earn">Earn Money</a></li>
           </ul>
         </div>
       </nav>
@@ -49,8 +48,8 @@ export default function Home() {
       <section id="home" className="hero">
         <div style={{ textAlign: 'center' }}>
           <h1>🚀 AI Fix Lab</h1>
-          <p>Free AI Tools + Multiple Income Streams = Fast Earnings</p>
-          <button className="cta-button" onClick={() => document.getElementById('tools').scrollIntoView()}>Get Started Free</button>
+          <p>Free AI Tools for Everyone</p>
+          <button className="cta-button" onClick={() => document.getElementById('tools').scrollIntoView()}>Try Tools Now</button>
         </div>
       </section>
 
@@ -61,10 +60,6 @@ export default function Home() {
             <div className="feature-card">
               <h3>💡 Free AI Tools</h3>
               <p>No credit card. No limits. Pure functionality.</p>
-            </div>
-            <div className="feature-card">
-              <h3>💰 6 Monetization Methods</h3>
-              <p>AdSense, Affiliates, Premium, Sponsors, Email, Courses</p>
             </div>
             <div className="feature-card">
               <h3>🎨 Modern & Beautiful</h3>
@@ -81,6 +76,10 @@ export default function Home() {
             <div className="feature-card">
               <h3>📱 Mobile First</h3>
               <p>Works perfectly on all devices. Responsive design.</p>
+            </div>
+            <div className="feature-card">
+              <h3>🔧 Easy to Use</h3>
+              <p>Simple, intuitive interface. Get results instantly.</p>
             </div>
           </div>
         </div>
@@ -112,49 +111,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="earn" style={{ padding: '80px 0', background: '#f8f9fa' }}>
-        <div className="container">
-          <h2 className="section-title">💸 Earn Money (6 Ways)</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '30px' }}>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-              <h3>📺 Google AdSense</h3>
-              <p>Display ads</p>
-              <span className="badge">$5-50 per 1K views</span>
-            </div>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-              <h3>🔗 Affiliate Links</h3>
-              <p>Recommend tools</p>
-              <span className="badge">10-30% commission</span>
-            </div>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-              <h3>💎 Premium Features</h3>
-              <p>Advanced tools</p>
-              <span className="badge">$5-20/month</span>
-            </div>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-              <h3>🤝 Sponsorships</h3>
-              <p>Brand partnerships</p>
-              <span className="badge">$100-1000/month</span>
-            </div>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-              <h3>📧 Email List</h3>
-              <p>Newsletter</p>
-              <span className="badge">$1-5 per subscriber</span>
-            </div>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-              <h3>🎓 Courses</h3>
-              <p>Teaching users</p>
-              <span className="badge">$19-99/course</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <footer>
         <div className="container" style={{ textAlign: 'center' }}>
           <p>&copy; 2025 AI Fix Lab. Free AI Tools for Everyone.</p>
           <p style={{ marginTop: '10px', fontSize: '0.9rem' }}>
-            <a href="#">Privacy</a> | <a href="#">Terms</a> | <a href="#">Advertise</a>
+            <a href="#">Privacy</a> | <a href="#">Terms</a>
           </p>
         </div>
       </footer>
