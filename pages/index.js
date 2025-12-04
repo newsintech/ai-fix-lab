@@ -85,11 +85,11 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>AI Fix Lab - 5 Free AI Tools | JSON Formatter, Prompt Optimizer & More</title>
+        <title>AI Fix Lab – Free AI Tools to Fix Code, SEO & Content | JSON Formatter, Prompt Optimizer & More</title>
         <meta name='description' content='Free AI Tools: JSON Formatter, Prompt Optimizer, Schema Generator, Image Prompt Creator, Content Repurposer - No signup required' />
         <meta name='keywords' content='free AI tools, JSON formatter, prompt optimizer, AI tools online, free AI tools no signup' />
         <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-        <meta property='og:title' content='AI Fix Lab - 5 Free AI Tools' />
+        <meta property='og:title' content='AI Fix Lab – Free AI Tools to Fix Code, SEO & Content' />
         <meta property='og:description' content='Generate better prompts, format JSON, create schemas - All free online tools' />
         <meta property='og:image' content='https://ai-fix-lab.vercel.app/og-image.png' />
         <meta name='twitter:card' content='summary_large_image' />
@@ -253,8 +253,8 @@ export default function Home() {
           color: #e0e0e0;
         }
         .app.light {
-          background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
-          color: #1e293b;
+background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);  background: #F5F5F7;
+color: ##111827;
         }
 
         .navbar {
