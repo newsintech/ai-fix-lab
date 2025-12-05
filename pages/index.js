@@ -1,12 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+
+// --- SEO & UTILITY FUNCTIONS ---
+
+// Function to update the document title and meta description for SEO
+const updateSEO = (tool) => {
+  const baseTitle = "AI Fix Lab - Free AI Tools for Developers & Creators";
+  const baseDesc = "Instant, client-side AI tools: JSON Formatter, Prompt Optimizer, Schema Generator, and more. No signup, always free.";
+  
+  if (tool) {
+    document.title = `${tool.name} | ${baseTitle}`;
+    // In a real app, you would fetch or define a unique, keyword-rich description for each tool
+    const toolDesc = tool.desc + " Use this free tool instantly.";
+    
+    // This is a simplified way to update meta tags in a client-side app.
+    // In a production React app, you should use a library like React Helmet or Next.js/Gatsby's built-in head management.
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', toolDesc);
+    
+    // Update canonical URL (important for SPAs with routing)
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    // Use a clean URL for the specific tool
+    const toolSlug = tool.name.toLowerCase().replace(/ /g, '-');
+    canonical.setAttribute('href', \`https://ai-fix-lab.vercel.app/\${toolSlug}\`);
+    
+  } else {
+    document.title = baseTitle;
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', baseDesc);
+  }
+};
+
+// --- MONETIZATION UTILITY FUNCTIONS ---
+
+const MAX_FREE_USES = 5;
+const PRO_API_KEY = "PRO-AI-FIX-LAB-2025"; // Placeholder for a real key check
+
+const getUsageData = () => {
+  const today = new Date().toDateString();
+  const storedData = JSON.parse(localStorage.getItem('aifixlab_usage')) || {};
+  
+  if (storedData.date !== today) {
+    return { date: today, count: 0, isPro: false };
+  }
+  return storedData;
+};
+
+const saveUsageData = (data) => {
+  localStorage.setItem('aifixlab_usage', JSON.stringify(data));
+};
+
+// --- MAIN COMPONENT ---
 
 export default function AIFixLab() {
   const [theme, setTheme] = useState('light');
   const [activeTab, setActiveTab] = useState(0);
   const [showEmailPopup, setShowEmailPopup] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [email, setEmail] = useState('');
-  const [toolUses, setToolUses] = useState(0);
+  const [usageData, setUsageData] = useState(getUsageData());
+  const [apiKey, setApiKey] = useState('');
   
+  // --- Tool State ---
   const [tool1Input, setTool1Input] = useState('');
   const [tool1Output, setTool1Output] = useState('');
   const [tool2Input, setTool2Input] = useState('');
@@ -18,19 +82,75 @@ export default function AIFixLab() {
   const [tool5Input, setTool5Input] = useState('');
   const [tool5Output, setTool5Output] = useState('');
 
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
+  // --- Tool Definitions ---
+  const tools = [
+    { id: 'json-formatter', name: 'JSON Formatter', icon: '📋', desc: 'Format & validate JSON instantly', input: tool1Input, setInput: setTool1Input, output: tool1Output, setOutput: setTool1Output, action: formatJSON },
+    { id: 'prompt-optimizer', name: 'Prompt Optimizer', icon: '⚡', desc: 'Improve your AI prompts for better results', input: tool2Input, setInput: setTool2Input, output: tool2Output, setOutput: setTool2Output, action: optimizePrompt },
+    { id: 'schema-generator', name: 'Schema Generator', icon: '🔠', desc: 'Generate JSON schemas from descriptions', input: tool3Input, setInput: setTool3Input, output: tool3Output, setOutput: setTool3Output, action: generateSchema },
+    { id: 'image-prompt', name: 'Image Prompt Creator', icon: '🎨', desc: 'Create Midjourney/DALL-E prompts with style modifiers', input: tool4Input, setInput: setTool4Input, output: tool4Output, setOutput: setTool4Output, action: generateImagePrompt },
+    { id: 'content-repurpose', name: 'Content Repurposer', icon: '📚', desc: 'Transform content into multiple formats (blog, social, video)', input: tool5Input, setInput: setTool5Input, output: tool5Output, setOutput: setTool5Output, action: repurposeContent }
+  ];
 
-  const trackToolUse = () => {
-    const newCount = toolUses + 1;
-    setToolUses(newCount);
-    if (newCount % 5 === 0) {
+  // --- SEO & Routing Effect ---
+  useEffect(() => {
+    // Simple Hash-based routing
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1);
+      const toolIndex = tools.findIndex(t => t.id === hash);
+      if (toolIndex !== -1) {
+        setActiveTab(toolIndex);
+        updateSEO(tools[toolIndex]);
+      } else {
+        setActiveTab(0);
+        updateSEO(tools[0]); // Default to the first tool
+      }
+    };
+
+    handleHashChange(); // Initial load
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // --- Usage Tracking & Monetization Logic ---
+  const trackToolUse = useCallback(() => {
+    if (usageData.isPro) return; // No tracking for Pro users
+
+    const newCount = usageData.count + 1;
+    const newUsageData = { ...usageData, count: newCount };
+    setUsageData(newUsageData);
+    saveUsageData(newUsageData);
+
+    if (newCount % 5 === 0 && newCount <= MAX_FREE_USES) {
       setShowEmailPopup(true);
+    } else if (newCount > MAX_FREE_USES) {
+      setShowUpgradeModal(true);
+    }
+  }, [usageData]);
+
+  const checkLimit = useCallback(() => {
+    if (usageData.isPro) return true;
+    if (usageData.count < MAX_FREE_USES) return true;
+    
+    setShowUpgradeModal(true);
+    return false;
+  }, [usageData]);
+
+  const handleApiKeySubmit = () => {
+    if (apiKey === PRO_API_KEY) {
+      const newUsageData = { ...usageData, isPro: true };
+      setUsageData(newUsageData);
+      saveUsageData(newUsageData);
+      setShowUpgradeModal(false);
+      alert('API Key accepted! You now have unlimited Pro access.');
+    } else {
+      alert('Invalid API Key. Please check your key or subscribe to Pro.');
     }
   };
 
+  // --- Tool Action Implementations (Wrapped with Limit Check) ---
+
   const formatJSON = () => {
+    if (!checkLimit()) return;
     try {
       const parsed = JSON.parse(tool1Input);
       setTool1Output(JSON.stringify(parsed, null, 2));
@@ -41,12 +161,14 @@ export default function AIFixLab() {
   };
 
   const optimizePrompt = () => {
+    if (!checkLimit()) return;
     const improved = `Enhanced Prompt:\n${tool2Input}\n\n✨ Optimization Tips:\n• Add specific context and examples\n• Define desired output format\n• Include constraints or requirements\n• Specify tone and style preferences`;
     setTool2Output(improved);
     trackToolUse();
   };
 
   const generateSchema = () => {
+    if (!checkLimit()) return;
     const description = tool3Input || 'Sample data structure';
     const schema = {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -63,6 +185,7 @@ export default function AIFixLab() {
   };
 
   const generateImagePrompt = () => {
+    if (!checkLimit()) return;
     const base = tool4Input || 'stunning landscape';
     const prompt = `${base}, masterpiece quality, 8k uhd, professional photography, perfect composition, dramatic lighting, cinematic, trending on artstation, highly detailed`;
     setTool4Output(`🎨 Optimized for Midjourney/DALL-E:\n\n${prompt}\n\n💡 Pro Tips:\n• Add style descriptors (photorealistic, oil painting, etc.)\n• Include lighting details (golden hour, studio lighting)\n• Specify camera angle or perspective\n• Add quality boosters (8k, uhd, masterpiece)`);
@@ -70,21 +193,37 @@ export default function AIFixLab() {
   };
 
   const repurposeContent = () => {
+    if (!checkLimit()) return;
     const content = tool5Input || 'Your content here';
     setTool5Output(`📝 Original Content:\n${content.substring(0, 100)}...\n\n🔄 Repurposed Formats:\n\n1️⃣ Blog Post (800-1500 words)\n• SEO-optimized title\n• Introduction with hook\n• Detailed sections with examples\n• Conclusion with CTA\n\n2️⃣ Social Media Thread\n• Twitter: 10-tweet thread\n• LinkedIn: Professional carousel\n• Instagram: Story series\n\n3️⃣ Email Newsletter\n• Catchy subject line\n• Personal greeting\n• Value-packed content\n• Clear call-to-action\n\n4️⃣ Video Script\n• Hook (first 3 seconds)\n• Main content (2-5 min)\n• Visual cues and b-roll notes\n• Strong outro with CTA\n\n5️⃣ Podcast Outline\n• Intro music timestamp\n• Key talking points\n• Guest questions (if applicable)\n• Sponsor mentions\n• Outro and next episode teaser`);
     trackToolUse();
   };
 
-  const tools = [
-    { name: 'JSON Formatter', icon: '📋', desc: 'Format & validate JSON instantly', input: tool1Input, setInput: setTool1Input, output: tool1Output, action: formatJSON },
-    { name: 'Prompt Optimizer', icon: '⚡', desc: 'Improve your AI prompts', input: tool2Input, setInput: setTool2Input, output: tool2Output, action: optimizePrompt },
-    { name: 'Schema Generator', icon: '🔠', desc: 'Generate JSON schemas', input: tool3Input, setInput: setTool3Input, output: tool3Output, action: generateSchema },
-    { name: 'Image Prompt', icon: '🎨', desc: 'Create Midjourney/DALL-E prompts', input: tool4Input, setInput: setTool4Input, output: tool4Output, action: generateImagePrompt },
-    { name: 'Content Repurpose', icon: '📚', desc: 'Transform content formats', input: tool5Input, setInput: setTool5Input, output: tool5Output, action: repurposeContent }
-  ];
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
+
+  const currentTool = tools[activeTab];
 
   return (
     <div className={`app ${theme}`}>
+      {/* --- SEO: JSON-LD Structured Data (Add this to your main index.html or use a React Helmet component) --- */}
+      {/* 
+      <script type="application/ld+json">
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "AI Fix Lab",
+        "url": "https://ai-fix-lab.vercel.app/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://ai-fix-lab.vercel.app/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      })}
+      </script>
+      */}
+
       <div className="ad-banner top-ad">
         <div className="ad-placeholder">📢 Google AdSense - Horizontal Banner (728x90 or Responsive)</div>
       </div>
@@ -96,6 +235,8 @@ export default function AIFixLab() {
             <h1>AI Fix Lab</h1>
           </div>
           <div className="nav-right">
+            {/* Pro Status Indicator */}
+            {usageData.isPro && <span className="pro-badge">PRO UNLOCKED</span>}
             <button onClick={toggleTheme} className="theme-btn">
               {theme === 'light' ? '🌙' : '☀️'}
             </button>
@@ -106,56 +247,69 @@ export default function AIFixLab() {
       <header className="hero">
         <div className="container">
           <h2 className="hero-title">5 Free AI Tools for Developers & Creators</h2>
-          <p className="hero-subtitle">No signup • No credit card • Always free</p>
+          <p className="hero-subtitle">No signup • {usageData.isPro ? 'Unlimited Pro Access' : \`Free Daily Uses: \${MAX_FREE_USES - usageData.count} left\`}</p>
           <div className="hero-badges">
-            <span className="badge">✅ 100% Free</span>
+            <span className="badge">✅ {usageData.isPro ? 'Pro' : 'Free'} Access</span>
             <span className="badge">⚡ Instant Results</span>
             <span className="badge">🔒 Privacy-First</span>
           </div>
+          <button onClick={() => setShowUpgradeModal(true)} className="btn-secondary upgrade-btn">
+            🚀 Upgrade to Pro for Unlimited Use
+          </button>
         </div>
       </header>
 
       <div className="container">
         <div className="tabs">
           {tools.map((tool, idx) => (
-            <button 
+            <a 
               key={idx}
-              className={`tab ${activeTab === idx ? 'active' : ''}`}
-              onClick={() => setActiveTab(idx)}
+              href={\`#\${tool.id}\`} // Use hash for routing
+              className={\`tab \${activeTab === idx ? 'active' : ''}\`}
+              onClick={() => {
+                setActiveTab(idx);
+                updateSEO(tool);
+              }}
             >
               <span className="tab-icon">{tool.icon}</span>
               <span className="tab-name">{tool.name}</span>
-            </button>
+            </a>
           ))}
         </div>
 
         <div className="tool-section">
           <div className="tool-card">
             <div className="tool-header">
-              <h3>{tools[activeTab].icon} {tools[activeTab].name}</h3>
-              <p>{tools[activeTab].desc}</p>
+              <h3>{currentTool.icon} {currentTool.name}</h3>
+              <p>{currentTool.desc}</p>
+              {!usageData.isPro && (
+                <p className="usage-info">
+                  Free uses remaining today: <strong>{Math.max(0, MAX_FREE_USES - usageData.count)}</strong>
+                </p>
+              )}
             </div>
             
             <textarea 
-              placeholder={`Enter your ${tools[activeTab].name.toLowerCase()} here...`}
-              value={tools[activeTab].input}
-              onChange={(e) => tools[activeTab].setInput(e.target.value)}
+              placeholder={\`Enter your \${currentTool.name.toLowerCase()} here...\`}
+              value={currentTool.input}
+              onChange={(e) => currentTool.setInput(e.target.value)}
               className="tool-input"
+              disabled={!usageData.isPro && usageData.count >= MAX_FREE_USES}
             />
             
-            <button onClick={tools[activeTab].action} className="btn-primary">
-              ✨ {tools[activeTab].name === 'JSON Formatter' ? 'Format' : tools[activeTab].name === 'Prompt Optimizer' ? 'Optimize' : 'Generate'}
+            <button onClick={currentTool.action} className="btn-primary" disabled={!usageData.isPro && usageData.count >= MAX_FREE_USES}>
+              {usageData.count >= MAX_FREE_USES ? '🔒 Upgrade to Unlock' : \`✨ \${currentTool.name === 'JSON Formatter' ? 'Format' : currentTool.name === 'Prompt Optimizer' ? 'Optimize' : 'Generate'}\`}
             </button>
 
-            {tools[activeTab].output && (
+            {currentTool.output && (
               <div className="output">
                 <div className="output-header">
                   <span>✅ Result</span>
-                  <button onClick={() => navigator.clipboard.writeText(tools[activeTab].output)} className="copy-btn">
+                  <button onClick={() => navigator.clipboard.writeText(currentTool.output)} className="copy-btn">
                     📋 Copy
                   </button>
                 </div>
-                <pre>{tools[activeTab].output}</pre>
+                <pre>{currentTool.output}</pre>
               </div>
             )}
           </div>
@@ -166,7 +320,7 @@ export default function AIFixLab() {
             </div>
             
             <div className="affiliate-box">
-              <h4>🚀 Recommended AI Tools</h4>
+              <h4>🚀 Recommended AI Tools (Affiliate)</h4>
               <a href="https://openai.com/chatgpt?utm_source=aifixlab" target="_blank" rel="noopener" className="affiliate-link">
                 <strong>ChatGPT Plus</strong>
                 <span>GPT-4 access + faster responses</span>
@@ -179,6 +333,11 @@ export default function AIFixLab() {
                 <strong>GitHub Copilot</strong>
                 <span>AI pair programming</span>
               </a>
+              {/* New Affiliate/Sponsorship Slot */}
+              <div className="affiliate-link sponsored-link">
+                <strong>✨ Sponsored Tool of the Week</strong>
+                <span>Your tool could be here! Contact us for sponsorship.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -198,13 +357,14 @@ export default function AIFixLab() {
             </div>
             <div className="feature">
               <span className="feature-icon">💯</span>
-              <h3>Always Free</h3>
-              <p>No hidden costs, no trial periods, no credit card required. Professional tools accessible to everyone.</p>
+              <h3>Always Free (Up to {MAX_FREE_USES} Uses/Day)</h3>
+              <p>Use our professional tools for free every day. Upgrade to Pro for unlimited access and advanced features.</p>
             </div>
           </div>
         </div>
       </div>
 
+      {/* --- Email Capture Popup (Original Logic) --- */}
       {showEmailPopup && (
         <div className="popup-overlay" onClick={() => setShowEmailPopup(false)}>
           <div className="popup" onClick={(e) => e.stopPropagation()}>
@@ -220,6 +380,7 @@ export default function AIFixLab() {
             />
             <button onClick={() => {
               if (email) {
+                // IMPORTANT: Replace YOUR_WEBHOOK with your actual Zapier/Mailchimp/etc. webhook URL
                 fetch('https://hooks.zapier.com/hooks/catch/YOUR_WEBHOOK/', {
                   method: 'POST',
                   body: JSON.stringify({ email, source: 'aifixlab' })
@@ -230,7 +391,47 @@ export default function AIFixLab() {
             }} className="popup-btn">
               Subscribe Free
             </button>
-            <p className="popup-privacy">🔒 No spam. Unsubscribe anytime.</p>
+            <p className="popup-privacy">We respect your privacy. Unsubscribe anytime.</p>
+          </div>
+        </div>
+      )}
+
+      {/* --- New Upgrade/Monetization Modal --- */}
+      {showUpgradeModal && (
+        <div className="popup-overlay" onClick={() => setShowUpgradeModal(false)}>
+          <div className="popup upgrade-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="popup-close" onClick={() => setShowUpgradeModal(false)}>×</button>
+            <h3>🛑 Daily Limit Reached!</h3>
+            <p>You have used your {MAX_FREE_USES} free daily uses. Upgrade to **AI Fix Lab Pro** for unlimited access, no ads, and API access.</p>
+            
+            <div className="pricing-box">
+              <h4>AI Fix Lab Pro</h4>
+              <p className="price">$5/month</p>
+              <ul>
+                <li>✅ Unlimited Tool Uses</li>
+                <li>✅ API Access (10,000 calls/month)</li>
+                <li>✅ Ad-Free Experience</li>
+                <li>✅ Priority Feature Requests</li>
+              </ul>
+              {/* IMPORTANT: Replace # with your actual payment link (Stripe, Gumroad, etc.) */}
+              <a href="#your-payment-link" target="_blank" rel="noopener" className="popup-btn">
+                Get Pro Access Now
+              </a>
+            </div>
+
+            <div className="api-key-section">
+              <h4>Already a Pro User? Enter API Key:</h4>
+              <input 
+                type="text" 
+                placeholder="Enter your Pro API Key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="popup-input"
+              />
+              <button onClick={handleApiKeySubmit} className="btn-secondary">
+                Activate Pro
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -243,19 +444,18 @@ export default function AIFixLab() {
               <p>Free AI tools for developers, creators, and businesses. Format JSON, optimize prompts, generate schemas, and more.</p>
             </div>
             <div className="footer-section">
-              <h4>Quick Links</h4>
-              <a href="#json">JSON Formatter</a>
-              <a href="#prompt">Prompt Optimizer</a>
-              <a href="#schema">Schema Generator</a>
-              <a href="#image">Image Prompt Creator</a>
-              <a href="#content">Content Repurposer</a>
+              <h4>Quick Links (SEO Focus)</h4>
+              {tools.map(tool => (
+                <a key={tool.id} href={\`#\${tool.id}\`}>{tool.name}</a>
+              ))}
             </div>
             <div className="footer-section">
-              <h4>Resources</h4>
+              <h4>Resources & Monetization</h4>
               <a href="https://github.com/newsintech/ai-fix-lab" target="_blank" rel="noopener">GitHub</a>
-              <a href="#">Blog</a>
-              <a href="#">API Docs</a>
-              <a href="#">Contact</a>
+              <a href="#">Blog (SEO Content Hub)</a>
+              <a href="#your-payment-link">Upgrade to Pro</a>
+              <a href="#">API Docs (Monetization)</a>
+              <a href="#">Contact for Sponsorship</a>
             </div>
           </div>
           <div className="footer-bottom">
@@ -273,7 +473,9 @@ export default function AIFixLab() {
         <div className="ad-placeholder">📢 Google AdSense - Horizontal Banner (728x90)</div>
       </div>
 
+      {/* --- CSS STYLES (Additions for new elements) --- */}
       <style jsx>{`
+        /* Existing styles from original file (lines 277-863) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         .app {
@@ -590,7 +792,7 @@ export default function AIFixLab() {
         }
 
         .affiliate-box {
-          background: white;
+          background: #ffffff;
           border: 1px solid #dadce0;
           border-radius: 8px;
           padding: 24px;
@@ -860,6 +1062,114 @@ export default function AIFixLab() {
           .tabs { overflow-x: auto; }
           .footer-content { grid-template-columns: 1fr; }
           .footer-bottom { flex-direction: column; gap: 16px; }
+        }
+
+        /* --- NEW STYLES FOR MONETIZATION & SEO --- */
+        .upgrade-btn {
+          margin-top: 20px;
+          padding: 12px 24px;
+          background: #fbbc04; /* Google Yellow */
+          color: #202124;
+          border: none;
+          border-radius: 24px;
+          font-size: 16px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .upgrade-btn:hover {
+          background: #e8a800;
+          box-shadow: 0 2px 8px rgba(251, 188, 4, 0.5);
+        }
+        .pro-badge {
+          background: #fbbc04;
+          color: #202124;
+          padding: 4px 12px;
+          border-radius: 16px;
+          font-size: 12px;
+          font-weight: 700;
+          margin-right: 16px;
+        }
+        .usage-info {
+          font-size: 14px;
+          color: #e8a800;
+          font-weight: 500;
+          margin-bottom: 16px;
+        }
+        .tool-input:disabled {
+          background: #f1f3f4;
+          cursor: not-allowed;
+          opacity: 0.7;
+        }
+        .app.dark .tool-input:disabled {
+          background: #3c4043;
+        }
+        .upgrade-modal {
+          max-width: 500px;
+        }
+        .pricing-box {
+          border: 2px solid #4285f4;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        .pricing-box h4 {
+          color: #4285f4;
+          font-size: 20px;
+          margin-bottom: 8px;
+        }
+        .price {
+          font-size: 32px;
+          font-weight: 700;
+          color: #34a853;
+          margin-bottom: 16px;
+        }
+        .pricing-box ul {
+          list-style: none;
+          padding: 0;
+          margin-bottom: 20px;
+          text-align: left;
+        }
+        .pricing-box ul li {
+          margin-bottom: 8px;
+          font-size: 16px;
+          color: #5f6368;
+        }
+        .pricing-box ul li::before {
+          content: '✔️';
+          margin-right: 8px;
+          color: #34a853;
+        }
+        .api-key-section {
+          padding-top: 20px;
+          border-top: 1px solid #dadce0;
+        }
+        .api-key-section h4 {
+          font-size: 16px;
+          margin-bottom: 12px;
+        }
+        .btn-secondary {
+          width: 100%;
+          padding: 14px;
+          background: #e8eaed;
+          color: #202124;
+          border: none;
+          border-radius: 24px;
+          font-size: 16px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+          background: #dadce0;
+        }
+        .sponsored-link {
+          border: 2px dashed #fbbc04;
+          background: #fffbe5;
+        }
+        .app.dark .sponsored-link {
+          background: #3c4043;
         }
       `}</style>
     </div>
