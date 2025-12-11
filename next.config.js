@@ -40,6 +40,10 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'geolocation=(), microphone=(), camera=()',
           },
+                      {
+              key: 'Strict-Transport-Security',
+              value: 'max-age=31536000; includeSubDomains; preload',
+            },
           {
             key: 'Access-Control-Allow-Origin',
             value: 'https://aifixlab.vercel.app',
