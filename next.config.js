@@ -41,6 +41,10 @@ const nextConfig = {
             value: 'geolocation=(), microphone=(), camera=()',
           },
           {
+            key: 'Access-Control-Allow-Origin',
+            value: 'https://aifixlab.vercel.app',
+          },
+          {
             key: 'Content-Security-Policy',
             value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com; img-src 'self' data: https: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.googletagmanager.com; connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com; media-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';",
           },
