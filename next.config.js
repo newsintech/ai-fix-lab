@@ -7,14 +7,14 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  
+
   // Compression & Performance
   compress: true,
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
   generateEtags: true,
-  
-  // Headers for SEO
+
+  // Security Headers
   async headers() {
     return [
       {
@@ -40,6 +40,10 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'geolocation=(), microphone=(), camera=()',
           },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com; img-src 'self' data: https: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.googletagmanager.com; connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com; media-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';",
+          },
         ],
       },
       {
@@ -53,20 +57,20 @@ const nextConfig = {
       },
     ];
   },
-  
+
   // Redirects for old URLs (if any)
   async redirects() {
     return [];
   },
-  
+
   // Rewrites
   async rewrites() {
     return [];
   },
-  
+
   // Internationalization (optional)
   i18n: undefined,
-  
+
   // Experiments for better performance
   experimental: {
     optimizePackageImports: ['react', 'react-dom'],
